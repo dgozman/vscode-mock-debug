@@ -14,7 +14,7 @@ import * as Net from 'net';
  * debug adapter should run inside the extension host.
  * Please note: the test suite does not (yet) work in this mode.
  */
-const EMBED_DEBUG_ADAPTER = false;
+const EMBED_DEBUG_ADAPTER = true;
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -23,6 +23,18 @@ export function activate(context: vscode.ExtensionContext) {
 			placeHolder: "Please enter the name of a markdown file in the workspace folder",
 			value: "readme.md"
 		});
+	}));
+
+  context.subscriptions.push(vscode.commands.registerCommand('trigger.issue77841', async e => {
+		const config = {
+			"type": "mock",
+			"request": "launch",
+			"name": "depth0",
+			"depth": 0,
+			"program": "${workspaceFolder}/readme.md",
+			"stopOnEntry": true
+		};
+		vscode.debug.startDebugging(vscode.workspace.workspaceFolders![0], config);
 	}));
 
 	// register a configuration provider for 'mock' debug type
@@ -76,6 +88,16 @@ class MockDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescriptor
 	private server?: Net.Server;
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
+
+		const depth = session.configuration['depth'] + 1;
+		if (depth < 3) {
+			const config = {
+				...session.configuration,
+				name: 'depth' + depth,
+				depth
+			};
+			vscode.debug.startDebugging(session.workspaceFolder, config, session);
+		}
 
 		if (!this.server) {
 			// start listening on a random port

@@ -34,7 +34,6 @@
 		"tslint": "tslint ./src/**/*.ts",
 		"watch": "tsc -w -p ./src",
 		"test": "mocha -u tdd ./out/tests/",
-		"postinstall": "node ./node_modules/vscode/bin/install",
 		"package": "vsce package",
 		"publish": "vsce publish"
 	},
@@ -45,9 +44,10 @@
 	"devDependencies": {
 		"@types/node": "8.9.3",
 		"@types/mocha": "5.2.5",
+		"@types/vscode": "^1.30.0",
 		"typescript": "3.1.6",
 		"mocha": "5.2.0",
-		"vscode": "1.1.21",
+		"vscode-test": "^1.0.0",
 		"vscode-debugadapter-testsupport": "1.33.0",
 		"tslint": "5.11.0",
 		"vsce": "1.53.2"
@@ -55,9 +55,16 @@
 	"main": "./out/extension",
 	"activationEvents": [
 		"onDebug",
-		"onCommand:extension.mock-debug.getProgramName"
+		"onCommand:extension.mock-debug.getProgramName",
+		"onCommand:trigger.issue77841"
 	],
 	"contributes": {
+		"commands": [
+      {
+        "command": "trigger.issue77841",
+        "title": "Trigger issue 77841"
+			}
+		],
 		"breakpoints": [
 			{
 				"language": "markdown"
@@ -67,8 +74,6 @@
 			{
 				"type": "mock",
 				"label": "Mock Debug",
-				"program": "./out/debugAdapter.js",
-				"runtime": "node",
 				"configurationAttributes": {
 					"launch": {
 						"required": [
