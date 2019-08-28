@@ -11,6 +11,9 @@ export interface MockBreakpoint {
 	verified: boolean;
 }
 
+// Use global breakpoint ids to not clash between two sessions.
+let _breakpointId = 1;
+
 /**
  * A Mock runtime with minimal debugger functionality.
  */
@@ -23,7 +26,7 @@ export class MockRuntime extends EventEmitter {
 	}
 
 	// the contents (= lines) of the one and only file
-	private _sourceLines: string[];
+	private _sourceLines: string[] = [];
 
 	// This is the next line that will be 'executed'
 	private _currentLine = 0;
@@ -33,7 +36,6 @@ export class MockRuntime extends EventEmitter {
 
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
-	private _breakpointId = 1;
 
 
 	constructor() {
@@ -51,8 +53,8 @@ export class MockRuntime extends EventEmitter {
 		this.verifyBreakpoints(this._sourceFile);
 
 		if (stopOnEntry) {
-			// we step once
-			this.step(false, 'stopOnEntry');
+			// Do not run to avoid pausing and focusing sessions.
+			// this.step(false, 'stopOnEntry');
 		} else {
 			// we just start to run until we hit a breakpoint or an exception
 			this.continue();
@@ -102,7 +104,7 @@ export class MockRuntime extends EventEmitter {
 	 */
 	public setBreakPoint(path: string, line: number) : MockBreakpoint {
 
-		const bp = <MockBreakpoint> { verified: false, line, id: this._breakpointId++ };
+		const bp = <MockBreakpoint> { verified: false, line, id: _breakpointId++ };
 		let bps = this._breakPoints.get(path);
 		if (!bps) {
 			bps = new Array<MockBreakpoint>();
@@ -177,7 +179,8 @@ export class MockRuntime extends EventEmitter {
 	private verifyBreakpoints(path: string) : void {
 		let bps = this._breakPoints.get(path);
 		if (bps) {
-			this.loadSource(path);
+			// Only debug the source we started at.
+			// this.loadSource(path);
 			bps.forEach(bp => {
 				if (!bp.verified && bp.line < this._sourceLines.length) {
 					const srcLine = this._sourceLines[bp.line].trim();
@@ -195,6 +198,12 @@ export class MockRuntime extends EventEmitter {
 					if (srcLine.indexOf('lazy') < 0) {
 						bp.verified = true;
 						this.sendEvent('breakpointValidated', bp);
+					} else {
+						// Trigger breakpoint "verified" after 5 seconds.
+						setTimeout(() => {
+							bp.verified = true;
+							this.sendEvent('breakpointValidated', bp);
+						}, 5000);
 					}
 				}
 			});
