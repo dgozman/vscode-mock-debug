@@ -4,6 +4,7 @@
 
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
+import { DebugProtocol } from 'vscode-debugprotocol';
 
 export interface MockBreakpoint {
 	id: number;
@@ -146,7 +147,12 @@ export class MockRuntime extends EventEmitter {
 		if (this._sourceFile !== file) {
 			this._sourceFile = file;
 			this._sourceLines = readFileSync(this._sourceFile).toString().split('\n');
+			this.sendEvent('loadedSource', { reason: 'new', source: this.loadedSource() });
 		}
+	}
+
+	public loadedSource(): DebugProtocol.Source {
+		return {name: this._sourceFile, path: this._sourceFile, sourceReference: 1};
 	}
 
 	/**

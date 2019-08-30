@@ -100,6 +100,8 @@ export class MockDebugSession extends LoggingDebugSession {
 		// make VS Code to show a 'step back' button
 		response.body.supportsStepBack = true;
 
+		response.body.supportsLoadedSourcesRequest = true;
+
 		this.sendResponse(response);
 
 		// since this debug adapter can accept configuration requests like 'setBreakpoint' at any time,
@@ -178,6 +180,13 @@ export class MockDebugSession extends LoggingDebugSession {
 		response.body = {
 			stackFrames: stk.frames.map(f => new StackFrame(f.index, f.name, this.createSource(f.file), this.convertDebuggerLineToClient(f.line))),
 			totalFrames: stk.count
+		};
+		this.sendResponse(response);
+	}
+
+	protected loadedSourcesRequest(response: DebugProtocol.LoadedSourcesResponse, args: DebugProtocol.LoadedSourcesArguments): void {
+		response.body = {
+			sources: [this._runtime.loadedSource()]
 		};
 		this.sendResponse(response);
 	}

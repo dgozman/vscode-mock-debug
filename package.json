@@ -55,9 +55,16 @@
 	"main": "./out/extension",
 	"activationEvents": [
 		"onDebug",
-		"onCommand:extension.mock-debug.getProgramName"
+		"onCommand:extension.mock-debug.getProgramName",
+		"onCommand:mock.rename-session"
 	],
 	"contributes": {
+		"commands": [
+			{
+				"command": "mock.rename-session",
+				"title": "Rename active session"
+			}
+		],
 		"breakpoints": [
 			{
 				"language": "markdown"

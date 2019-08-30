@@ -25,6 +25,20 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('mock.rename-session', async () => {
+		const session = vscode.debug.activeDebugSession;
+		if (!session)
+			return;
+		const name = await vscode.window.showInputBox({
+			placeHolder: "Please enter new session name",
+			value: ""
+		});
+		if (!name)
+			return;
+		session.name = name;
+		console.log(session.name);
+	}));
+
 	// register a configuration provider for 'mock' debug type
 	const provider = new MockConfigurationProvider();
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('mock', provider));
